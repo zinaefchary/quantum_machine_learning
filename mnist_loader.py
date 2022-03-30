@@ -49,7 +49,10 @@ def load_data():
     #f = 'mnist.pkl.gz'
     f = gzip.open('mnist.pkl.gz', 'rb')
     training_data, validation_data, test_data = pickle.load(f, encoding='latin1')
+    #print(training_data)
+
     f.close()
+
     return (training_data, validation_data, test_data)
 
 def load_data_wrapper():
@@ -74,16 +77,46 @@ def load_data_wrapper():
     turn out to be the most convenient for use in our neural network
     code."""
     tr_d, va_d, te_d = load_data()
+
+    # Filtering only "1"s and "0"s from MNIST dataset
+
+    tr_fil = np.append(np.where(tr_d[1] == 0),
+                       np.where(tr_d[1] == 1))
+
+    va_fil = np.append(np.where(va_d[1] == 0),
+                       np.where(va_d[1] == 1))
+
+    te_fil = np.append(np.where(te_d[1] == 0),
+                       np.where(te_d[1] == 1))
+
+    tr_d = ((tr_d[0][tr_fil], tr_d[1][tr_fil]))
+    va_d = ((va_d[0][va_fil], va_d[1][va_fil]))
+    te_d = ((te_d[0][te_fil], te_d[1][te_fil]))
+
+
+    #for x in tr_d[1]:
+    #if x == 0 or x == 1:
+    #        print(0)
+    #        tr_d = load_data()
+    #test = list(filter(lambda x: x == 0 or x == 1, tr_d[1]))
+    #tr_d = np.ndarray(filter(lambda x: x == 0 or x == 1, tr_d[:1]))
+    #print(test)
+
+    #tr_d = np.append(np.where(tr_d.targets == 0)[:1],
+    #                 np.where(tr_d.targets == 1)[:1])
+    #tr_d =
     training_inputs = [np.reshape(x, (784, 1)) for x in tr_d[0]]
     training_results = [vectorized_result(y) for y in tr_d[1]]
-    #training_data = zip(training_inputs, training_results)
+    training_data = zip(training_inputs, training_results)
     training_data = list(zip(training_inputs, training_results))
     validation_inputs = [np.reshape(x, (784, 1)) for x in va_d[0]]
-    #validation_data = zip(validation_inputs, va_d[1])
+    validation_data = zip(validation_inputs, va_d[1])
     validation_data = list(zip(validation_inputs, va_d[1]))
     test_inputs = [np.reshape(x, (784, 1)) for x in te_d[0]]
-    #test_data = zip(test_inputs, te_d[1])
+    test_data = zip(test_inputs, te_d[1])
     test_data = list(zip(test_inputs, te_d[1]))
+
+
     return (training_data, validation_data, test_data)
 
 def vectorized_result(j):
@@ -91,6 +124,9 @@ def vectorized_result(j):
     position and zeroes elsewhere.  This is used to convert a digit
     (0...9) into a corresponding desired output from the neural
     network."""
-    e = np.zeros((10, 1))
+    e = np.zeros((2, 1))
     e[j] = 1.0
     return e
+
+load_data()
+load_data_wrapper()

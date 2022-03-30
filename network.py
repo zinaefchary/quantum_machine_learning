@@ -18,16 +18,111 @@ and omits many desirable features.
 # Standard library
 import random
 
+
 # Third-party libraries
 import numpy as np
+import matplotlib.pyplot as plt
+
+# Hyperparamteres
+
+EPOCHS = 1
+BATCH_NUMEBR = 10
+LEARNING_RATE = 3.0
+
+#
+
+ACTIVATIONS = []
+WEIGHTS = []
+BIASES = []
+
 
 def main():
+    """
+     Main function, executes the programm.
+
+    Returns
+    -------
+    None.
+
+    """
 
     import mnist_loader
     training_data, validation_data, test_data = mnist_loader.load_data_wrapper()
-    net = Network([784, 4, 10])
-    net.SGD(training_data, 30, 10, 3.0, test_data=test_data)
+    net = Network([784, 4, 2])
+    net.SGD(training_data, EPOCHS, BATCH_NUMEBR, LEARNING_RATE, test_data=test_data)
+    activation_a, activation_b, activation_c, activation_d = find_activation(training_data)
+    wavefunction, normalisation = get_wavefunction(activation_a, activation_b,
+                                                   activation_c, activation_d)
+    plot_graphs(activation_a, activation_b, activation_c, activation_d,
+                wavefunction, normalisation)
 
+
+def find_activation(training_data):
+    """
+    This function gives back four arrays of the activation of the four neurons
+    in the hidden layer after each iteration for the first image in the training
+    set. This activation is equivalent to the psi_i and is the indivdual
+    wavefunction of each neuron.
+
+    Parameters
+    ----------
+    training_data : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    activation_a : TYPE
+        DESCRIPTION.
+    activation_b : TYPE
+        DESCRIPTION.
+    activation_c : TYPE
+        DESCRIPTION.
+    activation_d : TYPE
+        DESCRIPTION.
+
+    """
+    # activation of each neuron in the second layer for the first image through
+    # each iterations
+
+    counter = 0
+    n = 0
+    activation_a = []
+    activation_b = []
+    activation_c = []
+    activation_d = []
+
+    while counter < EPOCHS:
+        n = len(training_data)*counter
+        activation_a.append(ACTIVATIONS[n][0][0][0])
+        activation_b.append(ACTIVATIONS[n][0][1][0])
+        activation_c.append(ACTIVATIONS[n][0][2][0])
+        activation_d.append(ACTIVATIONS[n][0][3][0])
+        counter = counter + 1
+
+    return activation_a, activation_b, activation_c, activation_d
+
+def get_wavefunction(activation_a, activation_b, activation_c, activation_d):
+    """
+
+
+    Parameters
+    ----------
+    training_data : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    None.
+
+    """
+    # assuming all four states are equally likely
+
+    normalisation = 0.5
+
+    wavefunction = normalisation*(np.add(np.add(activation_a, activation_b),
+                                  np.add(activation_c, activation_d)))
+
+    return wavefunction, normalisation
 
 class Network(object):
 
@@ -95,6 +190,7 @@ class Network(object):
         self.biases = [b-(eta/len(mini_batch))*nb
                        for b, nb in zip(self.biases, nabla_b)]
 
+
     def backprop(self, x, y):
         """Return a tuple ``(nabla_b, nabla_w)`` representing the
         gradient for the cost function C_x.  ``nabla_b`` and
@@ -111,6 +207,9 @@ class Network(object):
             zs.append(z)
             activation = sigmoid(z)
             activations.append(activation)
+        ACTIVATIONS.append(zs)
+        WEIGHTS.append(self.weights)
+        BIASES.append(self.biases)
         # backward pass
         delta = self.cost_derivative(activations[-1], y) * \
             sigmoid_prime(zs[-1])
@@ -128,6 +227,7 @@ class Network(object):
             delta = np.dot(self.weights[-l+1].transpose(), delta) * sp
             nabla_b[-l] = delta
             nabla_w[-l] = np.dot(delta, activations[-l-1].transpose())
+
         return (nabla_b, nabla_w)
 
     def evaluate(self, test_data):
@@ -153,7 +253,62 @@ def sigmoid_prime(z):
     """Derivative of the sigmoid function."""
     return sigmoid(z)*(1-sigmoid(z))
 
+def plot_graphs(activation_a, activation_b, activation_c, activation_d,
+                wavefunction, normalisation):
+    """ """
+
+    epoch = np.linspace(1, EPOCHS, num=EPOCHS)
+
+    # activation_a vs epoch
+
+    plt.subplot(221)
+    plt.plot(epoch , activation_a, color='blue')
+    plt.scatter(epoch , activation_a, color='red')
+    plt.title('neuron a')
+    plt.ylabel("activation")
+    plt.xticks(color='w')
+
+    # activation_b vs epoch
+
+    plt.subplot(222)
+    plt.plot(epoch , activation_b, color='orange')
+    plt.scatter(epoch , activation_b, color='red')
+    plt.title('neuron b')
+    plt.xticks(color='w')
+
+    # activation_c vs epoch
+
+    plt.subplot(223)
+    plt.plot(epoch , activation_c, color='red')
+    plt.scatter(epoch , activation_c, color='red')
+    plt.title('neuron c')
+    plt.xlabel("number of iterations")
+    plt.xticks(range(1, EPOCHS + 1))
+    plt.ylabel("activation")
+
+    # activation_d vs epoch
+
+    plt.subplot(224)
+    plt.plot(epoch , activation_d, color='green')
+    plt.scatter(epoch , activation_d, color='red')
+    plt.title('neuron d')
+    plt.xlabel("number of iterations")
+    plt.xticks(range(1, EPOCHS + 1))
+
+    # wavefunction vs epoch
+
+    plt.figure()
+    plt.plot(epoch, wavefunction)
+    plt.scatter(epoch , wavefunction, color='red')
+    plt.xlabel("number of iterations")
+    plt.ylabel("total wavefunction")
+    plt.xticks(range(1, EPOCHS + 1))
+    plt.show()
+
+
 # Main Code
 
 if __name__== "__main__":
     main()
+
+
