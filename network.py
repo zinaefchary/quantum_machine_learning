@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Mar 15 13:45:47 2022
-
-@author: Zina Efchary
+Original author: Michael Nielsen
+@edited: Zina Efchary
 """
 """
 network.py
