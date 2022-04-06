@@ -7,7 +7,9 @@ Created on Tue Mar 15 16:13:45 2022
 """
 mnist_loader
 ~~~~~~~~~~~~
-
+This code is based on Micheal Nielsen's classification algorithm, accessible at:
+https://github.com/mnielsen/neural-networks-and-deep-learning
+It is modified to filter only 0s and 1s from the original data set.
 A library to load the MNIST image data.  For details of the data
 structures that are returned, see the doc strings for ``load_data``
 and ``load_data_wrapper``.  In practice, ``load_data_wrapper`` is the

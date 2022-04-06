@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Mar 15 13:45:47 2022
-Original author: Michael Nielsen
-@edited: Zina Efchary
+
+@author: Zina Efchary
 """
 """
 network.py
 ~~~~~~~~~~
-A module to implement the stochastic gradient descent learning
-algorithm for a feedforward neural network.  Gradients are calculated
-using backpropagation.  Note that I have focused on making the code
-simple, easily readable, and easily modifiable.  It is not optimized,
-and omits many desirable features.
+This code is based on Micheal Nielsen's classification algorithm, accessible at:
+https://github.com/mnielsen/neural-networks-and-deep-learning
+A module to implement the stochastic gradient descent learning algorithm for a
+feedforward neural network.  Gradients are calculated using backpropagation.
+Note that I have focused on making the code simple, easily readable, and easily
+modifiable.  It is not optimized, and omits many desirable features.
 """
 
 #### Libraries
@@ -23,13 +24,16 @@ import random
 import numpy as np
 import matplotlib.pyplot as plt
 
+# Reading and converting data
+import mnist_loader
+
 # Hyperparamteres
 
-EPOCHS = 1
+EPOCHS = 5
 BATCH_NUMEBR = 10
 LEARNING_RATE = 3.0
 
-#
+# Defining global arrays to track the parameters through iterations
 
 ACTIVATIONS = []
 WEIGHTS = []
@@ -46,7 +50,7 @@ def main():
 
     """
 
-    import mnist_loader
+
     training_data, validation_data, test_data = mnist_loader.load_data_wrapper()
     net = Network([784, 4, 2])
     net.SGD(training_data, EPOCHS, BATCH_NUMEBR, LEARNING_RATE, test_data=test_data)
@@ -59,7 +63,7 @@ def main():
 
 def find_activation(training_data):
     """
-    This function gives back four arrays of the activation of the four neurons
+    This function creats four arrays of the activation of the four neurons
     in the hidden layer after each iteration for the first image in the training
     set. This activation is equivalent to the psi_i and is the indivdual
     wavefunction of each neuron.
@@ -81,8 +85,8 @@ def find_activation(training_data):
         DESCRIPTION.
 
     """
-    # activation of each neuron in the second layer for the first image through
-    # each iterations
+    # Saving a list of the activation for each neuron in the second
+    # layer for the first image in the data set after each epoch
 
     counter = 0
     n = 0
@@ -98,6 +102,10 @@ def find_activation(training_data):
         activation_c.append(ACTIVATIONS[n][0][2][0])
         activation_d.append(ACTIVATIONS[n][0][3][0])
         counter = counter + 1
+
+    #print(WEIGHTS[0][0][0])
+    #print(np.sign(WEIGHTS[0][0][0]))
+
 
     return activation_a, activation_b, activation_c, activation_d
 
@@ -207,9 +215,7 @@ class Network(object):
             zs.append(z)
             activation = sigmoid(z)
             activations.append(activation)
-        ACTIVATIONS.append(zs)
-        WEIGHTS.append(self.weights)
-        BIASES.append(self.biases)
+
         # backward pass
         delta = self.cost_derivative(activations[-1], y) * \
             sigmoid_prime(zs[-1])
@@ -228,6 +234,28 @@ class Network(object):
             nabla_b[-l] = delta
             nabla_w[-l] = np.dot(delta, activations[-l-1].transpose())
 
+        # Introducing sign-entanglement between neuron a and c approach 1
+
+        sign_weight_a = np.sign(self.weights[0][0][0])
+        self.weights[0][2][0] = self.weights[0][2][0]*sign_weight_a
+
+        # Introducing sign-entanglement between neuron a and c approach 2
+        #unupdated_weights = []
+        #unupdated_weights.append(self.weights)
+
+        #n=0
+
+       # while n <= len(unupdated_weights[0][0][0]):
+       #     if self.weights[0][0][0]*sign_weight_a > 0:
+       #         self.weights[0][2][0] = -self.weights[0][2][0]
+       #     n = n + 1
+
+
+
+        ACTIVATIONS.append(zs)
+        WEIGHTS.append(self.weights)
+        BIASES.append(self.biases)
+        #print(self.weights)
         return (nabla_b, nabla_w)
 
     def evaluate(self, test_data):
