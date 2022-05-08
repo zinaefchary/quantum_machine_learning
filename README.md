@@ -10,7 +10,7 @@ neural network such that it imitates the behaviour of a single Q-bit in a magnet
 field. The resulting quantum-inspired neural network reaches an average accuracy
 of 70.2% in classifying handwritten digits of 0 and 1.
 
-# General Overview of the proposed Quantum-Inspired-Neural Network
+# General Architecture of the proposed Quantum-Inspired-Neural Network
 
 ![architecture (0) (1) (1)](https://user-images.githubusercontent.com/99489418/167292825-b1511663-e7e6-4240-87b5-fbd3e4ba88ca.png)
 
