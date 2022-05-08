@@ -12,4 +12,4 @@ of 70.2% in classifying handwritten digits of 0 and 1.
 
 # General Overview of the proposed Quantum-Inspired-Neural Network
 
-![alt text](http://https://github.com/zinaefchary/quantum_machine_learning/blob/main/architecture%20(0)%20(1)%20(1).png/to/architecture (0) (1) (1).png)
+![alt text](https://github.com/zinaefchary/quantum_machine_learning/blob/main/image.jpg?raw=true)
