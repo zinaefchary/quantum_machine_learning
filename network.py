@@ -1,18 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Mar 15 13:45:47 2022
-
-@author: Zina Efchary
-"""
-"""
-network.py
-~~~~~~~~~~
+-----------------TITLE---------------------------
+PHYS30880 -  BSc Dissertation - network.py
+-------------------------------------------------
 This code is based on Micheal Nielsen's classification algorithm, accessible at:
 https://github.com/mnielsen/neural-networks-and-deep-learning
-A module to implement the stochastic gradient descent learning algorithm for a
-feedforward neural network.  Gradients are calculated using backpropagation.
-Note that I have focused on making the code simple, easily readable, and easily
-modifiable.  It is not optimized, and omits many desirable features.
+
+The classical code involves a module to implement the stochastic gradient
+descent learning algorithm for a feedforward neural network. Gradients are
+calculatedusing backpropagation.Modifications have been made to include
+quantum-behaviour in the network. The resulting behaviour is plotted.
+Last Updated: 06/05/22
+@Author: Zina Efchary
 """
 
 #### Libraries
@@ -23,17 +22,21 @@ import random
 # Third-party libraries
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.patches import Ellipse
+from math import atan, pi
+
+
 
 # Reading and converting data
 import mnist_loader
 
 # Hyperparamteres
 
-EPOCHS = 5
+EPOCHS = 10
 BATCH_NUMEBR = 10
 LEARNING_RATE = 3.0
 
-# Defining global arrays to track the parameters through iterations
+# Defining global arrays used to track the change of parameters through epochs
 
 ACTIVATIONS = []
 WEIGHTS = []
@@ -52,14 +55,11 @@ def main():
 
 
     training_data, validation_data, test_data = mnist_loader.load_data_wrapper()
-    net = Network([784, 4, 2])
+    net = Network([784, 2, 2])
     net.SGD(training_data, EPOCHS, BATCH_NUMEBR, LEARNING_RATE, test_data=test_data)
-    activation_a, activation_b, activation_c, activation_d = find_activation(training_data)
-    wavefunction, normalisation = get_wavefunction(activation_a, activation_b,
-                                                   activation_c, activation_d)
-    plot_graphs(activation_a, activation_b, activation_c, activation_d,
-                wavefunction, normalisation)
-
+    activation_a, activation_b = find_activation(training_data)
+    normalised_mag_field = get_mag_field(activation_a, activation_b)
+    plot_vectors(normalised_mag_field)
 
 def find_activation(training_data):
     """
@@ -67,22 +67,6 @@ def find_activation(training_data):
     in the hidden layer after each iteration for the first image in the training
     set. This activation is equivalent to the psi_i and is the indivdual
     wavefunction of each neuron.
-
-    Parameters
-    ----------
-    training_data : TYPE
-        DESCRIPTION.
-
-    Returns
-    -------
-    activation_a : TYPE
-        DESCRIPTION.
-    activation_b : TYPE
-        DESCRIPTION.
-    activation_c : TYPE
-        DESCRIPTION.
-    activation_d : TYPE
-        DESCRIPTION.
 
     """
     # Saving a list of the activation for each neuron in the second
@@ -92,45 +76,52 @@ def find_activation(training_data):
     n = 0
     activation_a = []
     activation_b = []
-    activation_c = []
-    activation_d = []
 
     while counter < EPOCHS:
         n = len(training_data)*counter
-        activation_a.append(ACTIVATIONS[n][0][0][0])
-        activation_b.append(ACTIVATIONS[n][0][1][0])
-        activation_c.append(ACTIVATIONS[n][0][2][0])
-        activation_d.append(ACTIVATIONS[n][0][3][0])
+
+        activation_a.append(ACTIVATIONS[n][1][0])
+        activation_b.append(ACTIVATIONS[n][1][1])
+
         counter = counter + 1
 
-    #print(WEIGHTS[0][0][0])
-    #print(np.sign(WEIGHTS[0][0][0]))
+
+    return activation_a, activation_b
 
 
-    return activation_a, activation_b, activation_c, activation_d
-
-def get_wavefunction(activation_a, activation_b, activation_c, activation_d):
+def get_mag_field(activation_a, activation_b):
+    """
+    This function converts the activations of the neurons in the ssecond layer
+    into a vector describing the orientation of the spin of an electron in the
+    magnetic field. Subsequantly, the length of the vector is normalised.
     """
 
+    # defining the magnetic field components and creating the correspending
+    # array
 
-    Parameters
-    ----------
-    training_data : TYPE
-        DESCRIPTION.
+    mag_x = activation_a
+    mag_y = activation_b
+    mag_field = np.hstack((mag_x, mag_y))
+    #print(mag_field)
 
-    Returns
-    -------
-    None.
+    # finding the normalisation of each vector in the array and normalising it
 
-    """
-    # assuming all four states are equally likely
+    normalisation_array = []
+    normalised_mag_field = []
+    n = 0
 
-    normalisation = 0.5
+    while n < len(mag_field):
 
-    wavefunction = normalisation*(np.add(np.add(activation_a, activation_b),
-                                  np.add(activation_c, activation_d)))
+        normalisation_array.append(np.linalg.norm(mag_field[n]))
+        normalised_mag_field.append(mag_field[:][n] / normalisation_array[n])
+        n = n + 1
 
-    return wavefunction, normalisation
+    # converting the resulting tuple back into an array
+
+    normalised_mag_field = np.asarray(normalised_mag_field)
+
+    return normalised_mag_field
+
 
 class Network(object):
 
@@ -154,8 +145,21 @@ class Network(object):
     def feedforward(self, a):
         """Return the output of the network if ``a`` is input."""
         for b, w in zip(self.biases, self.weights):
-            a = sigmoid(np.dot(w, a)+b)
+            a = gaussian(np.dot(w, a)+b)
         return a
+    def feedforward2(self, a):
+
+        zs = []
+        activations = [a]
+
+        activation = a
+        for b, w in zip(self.biases, self.weights):
+            z = np.dot(w, activation) + b
+            zs.append(z)
+            activation = gaussian(z)
+            activations.append(activation)
+
+        return (zs, activations)
 
     def SGD(self, training_data, epochs, mini_batch_size, eta,
             test_data=None):
@@ -197,6 +201,19 @@ class Network(object):
                         for w, nw in zip(self.weights, nabla_w)]
         self.biases = [b-(eta/len(mini_batch))*nb
                        for b, nb in zip(self.biases, nabla_b)]
+    def update_mini_batch2(self, mini_batch, eta):
+        batch_size = len(mini_batch)
+
+        # transform to (input x batch_size) matrix
+        x = np.asarray([_x.ravel() for _x, _y in mini_batch]).transpose()
+        # transform to (output x batch_size) matrix
+        y = np.asarray([_y.ravel() for _x, _y in mini_batch]).transpose()
+
+        nabla_b, nabla_w = self.backprop2(x, y)
+        self.weights = [w - (eta / batch_size) * nw for w, nw in zip(self.weights, nabla_w)]
+        self.biases = [b - (eta / batch_size) * nb for b, nb in zip(self.biases, nabla_b)]
+
+        return
 
 
     def backprop(self, x, y):
@@ -213,49 +230,58 @@ class Network(object):
         for b, w in zip(self.biases, self.weights):
             z = np.dot(w, activation)+b
             zs.append(z)
-            activation = sigmoid(z)
+            activation = gaussian(z)
             activations.append(activation)
 
         # backward pass
         delta = self.cost_derivative(activations[-1], y) * \
-            sigmoid_prime(zs[-1])
+            gaussian_prime(zs[-1])
         nabla_b[-1] = delta
         nabla_w[-1] = np.dot(delta, activations[-2].transpose())
+
+
         # Note that the variable l in the loop below is used a little
         # differently to the notation in Chapter 2 of the book.  Here,
         # l = 1 means the last layer of neurons, l = 2 is the
         # second-last layer, and so on.  It's a renumbering of the
         # scheme in the book, used here to take advantage of the fact
         # that Python can use negative indices in lists.
+
         for l in range(2, self.num_layers):
             z = zs[-l]
-            sp = sigmoid_prime(z)
+            sp = gaussian_prime(z)
             delta = np.dot(self.weights[-l+1].transpose(), delta) * sp
             nabla_b[-l] = delta
             nabla_w[-l] = np.dot(delta, activations[-l-1].transpose())
 
-        # Introducing sign-entanglement between neuron a and c approach 1
+        # adding the resulting activation and paramters to the global array
 
-        sign_weight_a = np.sign(self.weights[0][0][0])
-        self.weights[0][2][0] = self.weights[0][2][0]*sign_weight_a
-
-        # Introducing sign-entanglement between neuron a and c approach 2
-        #unupdated_weights = []
-        #unupdated_weights.append(self.weights)
-
-        #n=0
-
-       # while n <= len(unupdated_weights[0][0][0]):
-       #     if self.weights[0][0][0]*sign_weight_a > 0:
-       #         self.weights[0][2][0] = -self.weights[0][2][0]
-       #     n = n + 1
-
-
-
-        ACTIVATIONS.append(zs)
+        ACTIVATIONS.append(activations)
         WEIGHTS.append(self.weights)
         BIASES.append(self.biases)
-        #print(self.weights)
+
+        return (nabla_b, nabla_w)
+
+    def backprop2(self, x, y):
+
+        nabla_b = [0 for i in self.biases]
+        nabla_w = [0 for i in self.weights]
+
+        # feedforward
+        zs, activations = self.feedforward2(x)
+
+        # backward pass
+        delta = self.cost_derivative(activations[-1], y) * gaussian_prime(zs[-1])
+        nabla_b[-1] = delta.sum(1).reshape([len(delta), 1]) # reshape to (n x 1) matrix
+        nabla_w[-1] = np.dot(delta, activations[-2].transpose())
+
+        for l in range(2, self.num_layers):
+           z = zs[-l]
+           sp = gaussian_prime(z)
+           delta = np.dot(self.weights[-l + 1].transpose(), delta) * sp
+           nabla_b[-l] = delta.sum(1).reshape([len(delta), 1]) # reshape to (n x 1) matrix
+           nabla_w[-l] = np.dot(delta, activations[-l - 1].transpose())
+
         return (nabla_b, nabla_w)
 
     def evaluate(self, test_data):
@@ -263,8 +289,10 @@ class Network(object):
         network outputs the correct result. Note that the neural
         network's output is assumed to be the index of whichever
         neuron in the final layer has the highest activation."""
+
         test_results = [(np.argmax(self.feedforward(x)), y)
                         for (x, y) in test_data]
+
         return sum(int(x == y) for (x, y) in test_results)
 
     def cost_derivative(self, output_activations, y):
@@ -272,7 +300,8 @@ class Network(object):
         \partial a for the output activations."""
         return (output_activations-y)
 
-#### Miscellaneous functions
+#### activation functions functions
+
 def sigmoid(z):
     """The sigmoid function."""
     return 1.0/(1.0+np.exp(-z))
@@ -281,58 +310,89 @@ def sigmoid_prime(z):
     """Derivative of the sigmoid function."""
     return sigmoid(z)*(1-sigmoid(z))
 
-def plot_graphs(activation_a, activation_b, activation_c, activation_d,
-                wavefunction, normalisation):
-    """ """
+def gaussian(z):
+    """A Gaussian-like function."""
+    return (np.exp((-(z + 0.1)**2)/10)+ np.exp((-(z - 0.)**2)/10))/100
 
-    epoch = np.linspace(1, EPOCHS, num=EPOCHS)
+def gaussian_prime(z):
+    """Derivative of gaussian function."""
+    return 0.01*(-2*(z+0.1)/10)*np.exp(-(z+0.1)**2/10) - 0.01*(2*(z-0.1)/10)*np.exp(-(z-0.1)**2/10)
 
-    # activation_a vs epoch
+def relu(z):
+    """The relu function."""
+    if z.any() < 0:
+        z = 0
+    else:
+        z = z
+    return z
 
-    plt.subplot(221)
-    plt.plot(epoch , activation_a, color='blue')
-    plt.scatter(epoch , activation_a, color='red')
-    plt.title('neuron a')
-    plt.ylabel("activation")
-    plt.xticks(color='w')
+def relu_prime(z):
+    """Derivative of relu function."""
+    if z.any() <= 0:
+        z = 1
+    else:
+        z = 0
+    return z
 
-    # activation_b vs epoch
+def plot_vectors(normalised_mag_field):
+    """
+    This function converts the spin orientation of the virtual Q-bit into polar
+    coordinates and subsequently, plots it.
+    """
 
-    plt.subplot(222)
-    plt.plot(epoch , activation_b, color='orange')
-    plt.scatter(epoch , activation_b, color='red')
-    plt.title('neuron b')
-    plt.xticks(color='w')
+    # defining the coordinates of magnetic fields in polar coordinates
 
-    # activation_c vs epoch
+    r = []
+    theta = []
+    labels = []
+    n = 0
 
-    plt.subplot(223)
-    plt.plot(epoch , activation_c, color='red')
-    plt.scatter(epoch , activation_c, color='red')
-    plt.title('neuron c')
-    plt.xlabel("number of iterations")
-    plt.xticks(range(1, EPOCHS + 1))
-    plt.ylabel("activation")
+    # finding the angles by converting it from cartesian coordinates to polar
 
-    # activation_d vs epoch
+    while n < len(normalised_mag_field):
+        r.append(np.linalg.norm(normalised_mag_field[n]))
+        if normalised_mag_field[n][0] > 0 and normalised_mag_field[n][1] > 0:
+            theta.append(atan(normalised_mag_field[n][1]/normalised_mag_field[n][0]))
+        if normalised_mag_field[n][0] < 0:
+            theta.append((np.pi + atan(normalised_mag_field[n][1]/normalised_mag_field[n][0])))
+        if normalised_mag_field[n][0] > 0 and normalised_mag_field[n][1] < 0:
+            theta.append(( 2*np.pi + atan(normalised_mag_field[n][1]/normalised_mag_field[n][0])))
+        n = n + 1
 
-    plt.subplot(224)
-    plt.plot(epoch , activation_d, color='green')
-    plt.scatter(epoch , activation_d, color='red')
-    plt.title('neuron d')
-    plt.xlabel("number of iterations")
-    plt.xticks(range(1, EPOCHS + 1))
+    fig = plt.figure(figsize=(5, 5))
+    ax = plt.subplot(111, projection = 'polar')
 
-    # wavefunction vs epoch
+    # plotting the vectors
 
-    plt.figure()
-    plt.plot(epoch, wavefunction)
-    plt.scatter(epoch , wavefunction, color='red')
-    plt.xlabel("number of iterations")
-    plt.ylabel("total wavefunction")
-    plt.xticks(range(1, EPOCHS + 1))
+    num_plots = len(normalised_mag_field)
+    colormap = plt.cm.gist_ncar
+    plt.gca().set_prop_cycle(plt.cycler('color', plt.cm.OrRd(np.linspace(0, 1, num_plots))))
+
+    for i in range(len(r)):
+        ax.plot([0, theta[i]], [0, r[i]])
+        labels.append(r'epoch %i' % (i))
+
+
+    # colouring the area of classification
+
+    specifity = np.pi / 8
+    angle_1 = np.linspace(3*np.pi / 8 - specifity, 3*np.pi / 8 + specifity, 100)
+    angle_0 = np.linspace(np.pi / 8 - specifity, np.pi / 8 + specifity, 100)
+    ax.fill_between(angle_1, 0, 1, color='r', alpha=0.1, label='classified as 1')
+    ax.fill_between(angle_0, 0, 1, color='b', alpha=0.1, label='classified as 0')
+
+
+    box = ax.get_position()
+    ax.set_position([box.x0, box.y0 + box.height * 0.1,
+                 box.width, box.height * 0.9])
+
+    # creating a legend
+
+    legend1 = ax.legend(loc='upper left', bbox_to_anchor=(0.5, -0.05))
+    ax.legend(labels, loc='lower right', bbox_to_anchor=(0.5, -0.25), ncol= 2)
+    ax.add_artist(legend1)
+
     plt.show()
-
 
 # Main Code
 

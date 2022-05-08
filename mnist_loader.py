@@ -48,10 +48,8 @@ def load_data():
     That's done in the wrapper function ``load_data_wrapper()``, see
     below.
     """
-    #f = 'mnist.pkl.gz'
     f = gzip.open('mnist.pkl.gz', 'rb')
     training_data, validation_data, test_data = pickle.load(f, encoding='latin1')
-    #print(training_data)
 
     f.close()
 
@@ -77,7 +75,12 @@ def load_data_wrapper():
     Obviously, this means we're using slightly different formats for
     the training data and the validation / test data.  These formats
     turn out to be the most convenient for use in our neural network
-    code."""
+    code.
+
+    This is again filtered to contain inly 1s and 0s. The final version
+    contains a total number of 10,610 training images and 2,115 test
+    images."""
+
     tr_d, va_d, te_d = load_data()
 
     # Filtering only "1"s and "0"s from MNIST dataset
@@ -95,18 +98,6 @@ def load_data_wrapper():
     va_d = ((va_d[0][va_fil], va_d[1][va_fil]))
     te_d = ((te_d[0][te_fil], te_d[1][te_fil]))
 
-
-    #for x in tr_d[1]:
-    #if x == 0 or x == 1:
-    #        print(0)
-    #        tr_d = load_data()
-    #test = list(filter(lambda x: x == 0 or x == 1, tr_d[1]))
-    #tr_d = np.ndarray(filter(lambda x: x == 0 or x == 1, tr_d[:1]))
-    #print(test)
-
-    #tr_d = np.append(np.where(tr_d.targets == 0)[:1],
-    #                 np.where(tr_d.targets == 1)[:1])
-    #tr_d =
     training_inputs = [np.reshape(x, (784, 1)) for x in tr_d[0]]
     training_results = [vectorized_result(y) for y in tr_d[1]]
     training_data = zip(training_inputs, training_results)
@@ -124,7 +115,7 @@ def load_data_wrapper():
 def vectorized_result(j):
     """Return a 10-dimensional unit vector with a 1.0 in the jth
     position and zeroes elsewhere.  This is used to convert a digit
-    (0...9) into a corresponding desired output from the neural
+    (0 and 1) into a corresponding desired output from the neural
     network."""
     e = np.zeros((2, 1))
     e[j] = 1.0
