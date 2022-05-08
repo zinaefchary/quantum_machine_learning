@@ -23,3 +23,5 @@ Firstly, the virtual Q-bit is being prepared and
 subsequently measured. The result of the measurement corresponds to either 1 or 0. Note
 that the entire system runs on a classical computer but introduces physical/quantum-
 mechanical phenomena into the ML algorithm.
+
+### Referenec: The code is based on the work done by Michael Nielsen, accessible at: https://github.com/mnielsen/neural-networks-and-deep-learning
