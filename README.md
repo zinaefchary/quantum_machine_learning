@@ -14,12 +14,12 @@ of 70.2% in classifying handwritten digits of 0 and 1.
 
 ![architecture (0) (1) (1)](https://user-images.githubusercontent.com/99489418/167292825-b1511663-e7e6-4240-87b5-fbd3e4ba88ca.png)
 
-\bf{a)}
-The structure of the NN. Note that the input is either a 28x28 pixel handwritten image
+## a) The structure of the NN. 
+Note that the input is either a 28x28 pixel handwritten image
 of 1 or 0. The neurons in the hidden layer 1 correspond to the magnetisation direction of
 the virtual Q-bit. The neurons in the hidden layer 2 represent the measurement operators.
-\bf{b)}
-Quantum equivalent of the network. Firstly, the virtual Q-bit is being prepared and
+## b) Quantum equivalent of the network. 
+Firstly, the virtual Q-bit is being prepared and
 subsequently measured. The result of the measurement corresponds to either 1 or 0. Note
 that the entire system runs on a classical computer but introduces physical/quantum-
 mechanical phenomena into the ML algorithm.
