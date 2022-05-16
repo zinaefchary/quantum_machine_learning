@@ -7,8 +7,7 @@ intelligence. This project aims to explore the possibility of implementing quant
 phenomena into machine learning algorithms. A theoretical approach to achieve
 this is proposed by modifying the architecture of a classical image recognition
 neural network such that it imitates the behaviour of a single Q-bit in a magnetic
-field. The resulting quantum-inspired neural network reaches an average accuracy
-of 70.2% in classifying handwritten digits of 0 and 1.
+field. The resulting system is a quantum-inspired neural network deoes a reasonable job in classifying handwritten digits of 0 and 1.
 
 # General Architecture of the proposed Quantum-Inspired-Neural Network
 
