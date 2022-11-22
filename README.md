@@ -24,4 +24,4 @@ that the entire system runs on a classical computer but introduces physical/quan
 mechanical phenomena into the ML algorithm.
 
 ### Referenec: The code is based on the work done by Michael Nielsen, accessible at: https://github.com/mnielsen/neural-networks-and-deep-learning
-Update: Further improvements and modifications have been added in collaboration with Ksenija Kovalenka (July 2022).
+Update: Further improvements and modifications have been added in collaboration with Ksenija Kovalenka (November 2022).
